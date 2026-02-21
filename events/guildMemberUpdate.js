@@ -35,7 +35,6 @@ module.exports = {
                     .setTitle('➕ Роль выдана')
                     .addFields(
                         { name: 'Пользователь', value: `<@${newMember.id}>`, inline: true },
-                        { name: 'ID', value: newMember.id, inline: true },
                         { name: 'Модератор', value: executor ? `<@${executor.id}>` : 'Неизвестно', inline: true },
                         { name: 'Роли', value: addedRoles.map(r => `<@&${r.id}>`).join(', ') }
                     )
@@ -52,7 +51,6 @@ module.exports = {
                     .setTitle('➖ Роль снята')
                     .addFields(
                         { name: 'Пользователь', value: `<@${newMember.id}>`, inline: true },
-                        { name: 'ID', value: newMember.id, inline: true },
                         { name: 'Модератор', value: executor ? `<@${executor.id}>` : 'Неизвестно', inline: true },
                         { name: 'Роли', value: removedRoles.map(r => `<@&${r.id}>`).join(', ') }
                     )
@@ -87,7 +85,6 @@ async function logTimeout(oldMember, newMember, client) {
                 .setTitle('⏰ Тайм-аут выдан')
                 .addFields(
                     { name: 'Пользователь', value: `<@${newMember.id}>`, inline: true },
-                    { name: 'ID', value: newMember.id, inline: true },
                     { name: 'Модератор', value: executor ? `<@${executor.id}>` : 'Неизвестно', inline: true },
                     { name: 'До', value: `<t:${Math.floor(newMember.communicationDisabledUntilTimestamp / 1000)}:F>` }
                 )
@@ -102,7 +99,6 @@ async function logTimeout(oldMember, newMember, client) {
                 .setTitle('✅ Тайм-аут снят')
                 .addFields(
                     { name: 'Пользователь', value: `<@${newMember.id}>`, inline: true },
-                    { name: 'ID', value: newMember.id, inline: true },
                     { name: 'Модератор', value: executor ? `<@${executor.id}>` : 'Неизвестно', inline: true }
                 )
                 .setThumbnail(newMember.user.displayAvatarURL())

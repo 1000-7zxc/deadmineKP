@@ -21,7 +21,6 @@ module.exports = {
                 .setTitle('✅ Пользователь разбанен')
                 .addFields(
                     { name: 'Пользователь', value: `<@${ban.user.id}>`, inline: true },
-                    { name: 'ID', value: ban.user.id, inline: true },
                     { name: 'Модератор', value: executor ? `<@${executor.id}>` : 'Неизвестно', inline: true }
                 )
                 .setThumbnail(ban.user.displayAvatarURL())

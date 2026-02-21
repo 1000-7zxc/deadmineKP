@@ -22,7 +22,7 @@ module.exports = {
             // Add author info if available
             if (message.author) {
                 embed.addFields(
-                    { name: 'Автор', value: `${message.author.tag} (${message.author.id})`, inline: true }
+                    { name: 'Автор', value: `<@${message.author.id}>`, inline: true }
                 );
                 embed.setThumbnail(message.author.displayAvatarURL());
             } else {

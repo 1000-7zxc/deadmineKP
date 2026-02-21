@@ -15,10 +15,6 @@ module.exports = {
                 .setColor('#00ff00')
                 .setTitle('🔊 Подключение к голосовому каналу')
                 .setDescription(`<@${member.id}> подключился к <#${newState.channelId}>`)
-                .addFields(
-                    { name: 'Пользователь', value: `${member.user.tag}`, inline: true },
-                    { name: 'ID', value: member.id, inline: true }
-                )
                 .setThumbnail(member.user.displayAvatarURL())
                 .setTimestamp();
             
@@ -31,10 +27,6 @@ module.exports = {
                 .setColor('#ff0000')
                 .setTitle('🔇 Отключение от голосового канала')
                 .setDescription(`<@${member.id}> отключился от <#${oldState.channelId}>`)
-                .addFields(
-                    { name: 'Пользователь', value: `${member.user.tag}`, inline: true },
-                    { name: 'ID', value: member.id, inline: true }
-                )
                 .setThumbnail(member.user.displayAvatarURL())
                 .setTimestamp();
             
@@ -47,10 +39,6 @@ module.exports = {
                 .setColor('#ffaa00')
                 .setTitle('🔄 Переключение голосового канала')
                 .setDescription(`<@${member.id}> переключился с <#${oldState.channelId}> на <#${newState.channelId}>`)
-                .addFields(
-                    { name: 'Пользователь', value: `${member.user.tag}`, inline: true },
-                    { name: 'ID', value: member.id, inline: true }
-                )
                 .setThumbnail(member.user.displayAvatarURL())
                 .setTimestamp();
             
