@@ -3,6 +3,124 @@ const config = require('../config');
 const fs = require('fs');
 const path = require('path');
 
+// Helper function to get next Sunday at 00:00
+function getNextSunday() {
+    const now = new Date();
+    const nextSunday = new Date(now);
+    nextSunday.setDate(now.getDate() + (7 - now.getDay()));
+    nextSunday.setHours(0, 0, 0, 0);
+    return nextSunday;
+}
+
+// Helper function to format date range
+function getWeekRange() {
+    const now = new Date();
+    const lastSunday = new Date(now);
+    lastSunday.setDate(now.getDate() - now.getDay());
+    lastSunday.setHours(0, 0, 0, 0);
+    
+    const thisSunday = new Date(lastSunday);
+    thisSunday.setDate(lastSunday.getDate() + 7);
+    
+    const format = (date) => {
+        const day = String(date.getDate()).padStart(2, '0');
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const year = date.getFullYear();
+        return `${day}.${month}.${year}`;
+    };
+    
+    return `${format(lastSunday)} - ${format(thisSunday)}`;
+}
+
+// Send weekly report
+async function sendWeeklyReport(client) {
+    console.log('📊 sendWeeklyReport function called');
+    const reportChannelId = process.env.REPORT_CHANNEL_ID || '1474896083971739874';
+    const deputyRoleId = '1474448804064264489'; // Заместитель
+    const curatorRoleId = '1474448804064264490'; // Куратор КП
+    
+    console.log(`📊 Report channel ID: ${reportChannelId}`);
+    console.log(`📊 Guilds count: ${client.guilds.cache.size}`);
+    
+    for (const [guildId, guild] of client.guilds.cache) {
+        try {
+            console.log(`📊 Processing guild: ${guild.name} (${guildId})`);
+            const reportChannel = guild.channels.cache.get(reportChannelId);
+            
+            if (!reportChannel) {
+                console.log(`❌ Report channel not found in guild ${guild.name}`);
+                continue;
+            }
+            
+            console.log(`✅ Report channel found: ${reportChannel.name}`);
+            
+            const tracking = client.inviteTracking.get(guildId) || new Map();
+            console.log(`📊 Tracking data size: ${tracking.size}`);
+            
+            const members = await guild.members.fetch();
+            console.log(`📊 Total members: ${members.size}`);
+            
+            // Get members with target roles
+            const targetMembers = members.filter(m => 
+                m.roles.cache.has(deputyRoleId) || m.roles.cache.has(curatorRoleId)
+            );
+            
+            console.log(`📊 Target members with roles: ${targetMembers.size}`);
+            
+            if (targetMembers.size === 0) {
+                console.log('⚠️ No members with target roles found');
+                continue;
+            }
+            
+            // Build report
+            let reportText = `📊 **Еженедельный отчёт по приглашениям**\n`;
+            reportText += `Период: ${getWeekRange()}\n\n`;
+            
+            const sortedMembers = Array.from(targetMembers.values())
+                .map(member => ({
+                    member,
+                    count: tracking.get(member.id) || 0
+                }))
+                .sort((a, b) => b.count - a.count);
+            
+            for (const { member, count } of sortedMembers) {
+                reportText += `👤 <@${member.id}>, Принял: **${count}** кандидатов\n`;
+            }
+            
+            const embed = new EmbedBuilder()
+                .setColor('#FFA500')
+                .setTitle('📊 Еженедельный отчёт')
+                .setDescription(reportText)
+                .setTimestamp();
+            
+            await reportChannel.send({ embeds: [embed] });
+            console.log(`✅ Weekly report sent to ${guild.name}`);
+            
+            // Reset tracking
+            client.inviteTracking.set(guildId, new Map());
+            
+        } catch (error) {
+            console.error(`❌ Error sending weekly report for guild ${guildId}:`, error);
+        }
+    }
+}
+
+// Schedule weekly reports
+function scheduleWeeklyReport(client) {
+    const checkAndSend = () => {
+        const now = new Date();
+        if (now.getDay() === 0 && now.getHours() === 0 && now.getMinutes() === 0) {
+            sendWeeklyReport(client);
+        }
+    };
+    
+    // Check every minute
+    setInterval(checkAndSend, 60000);
+    
+    console.log('✅ Weekly report scheduler started');
+    console.log(`📅 Next report: ${getNextSunday().toLocaleString('ru-RU')}`);
+}
+
 module.exports = {
     name: 'clientReady',
     once: true,
@@ -36,11 +154,37 @@ module.exports = {
         
         client.user.setPresence({
             activities: [{ 
-                name: '📝 Логирование сервера', 
+                name: 'как проиходят хакинги', 
                 type: ActivityType.Watching 
             }],
             status: 'online'
         });
+        
+        // Cache invites for all guilds
+        for (const [guildId, guild] of client.guilds.cache) {
+            try {
+                const invites = await guild.invites.fetch();
+                client.invites.set(guildId, new Map(invites.map(inv => [inv.code, inv])));
+                console.log(`✅ Cached ${invites.size} invites for ${guild.name}`);
+            } catch (error) {
+                console.error(`Error caching invites for ${guild.name}:`, error);
+            }
+        }
+        
+        // Schedule weekly reports
+        scheduleWeeklyReport(client);
+        
+        // Send test report (remove this after testing)
+        console.log(`🔍 SEND_TEST_REPORT = ${process.env.SEND_TEST_REPORT}`);
+        if (process.env.SEND_TEST_REPORT === 'true') {
+            console.log('📊 Sending test report in 5 seconds...');
+            setTimeout(() => {
+                console.log('📊 Executing sendWeeklyReport now...');
+                sendWeeklyReport(client);
+            }, 5000);
+        } else {
+            console.log('ℹ️ Test report disabled (set SEND_TEST_REPORT=true to enable)');
+        }
         
         console.log('✅ Bot is ready!');
         

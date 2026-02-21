@@ -29,10 +29,15 @@ const client = new Client({
         GatewayIntentBits.GuildMembers,
         GatewayIntentBits.GuildVoiceStates,
         GatewayIntentBits.GuildModeration,
-        GatewayIntentBits.MessageContent
+        GatewayIntentBits.MessageContent,
+        GatewayIntentBits.GuildInvites
     ],
     partials: [Partials.Message, Partials.Channel, Partials.GuildMember]
 });
+
+// Store invites data
+client.invites = new Map();
+client.inviteTracking = new Map();
 
 // Load events
 const eventsPath = path.join(__dirname, 'events');
