@@ -50,6 +50,16 @@ module.exports = {
         
         if (rulesChannel) {
             try {
+                // Delete old rules messages from bot
+                console.log('🗑️ Deleting old rules messages...');
+                const oldMessages = await rulesChannel.messages.fetch({ limit: 100 });
+                const botMessages = oldMessages.filter(msg => msg.author.id === client.user.id);
+                
+                if (botMessages.size > 0) {
+                    await rulesChannel.bulkDelete(botMessages);
+                    console.log(`✅ Deleted ${botMessages.size} old messages`);
+                }
+                
                 // Read rules from file
                 const rulesPath = path.join(__dirname, '..', 'правила.txt');
                 let rulesText = '';
